@@ -99,6 +99,20 @@ function OnionHeroSection({
         overflow: 'hidden',
       } }
     >
+      {/* Radial Glow — 양파 뒤 빛 번짐 */}
+      <Box
+        sx={ {
+          position: 'absolute',
+          inset: 0,
+          background: [
+            'radial-gradient(ellipse 70% 55% at 50% 55%, rgba(255,255,255,0.13) 0%, transparent 70%)',
+            'radial-gradient(ellipse 40% 30% at 50% 58%, rgba(255,255,255,0.10) 0%, transparent 60%)',
+          ].join(', '),
+          zIndex: 0,
+          pointerEvents: 'none',
+        } }
+      />
+
       {/* 커스텀 커서 팔로워 — 양파 중앙 영역에서만 활성화 */}
       <CursorFollower
         targetRef={ cursorAreaRef }
