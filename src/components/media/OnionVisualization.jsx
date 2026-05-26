@@ -1,6 +1,7 @@
 import { Suspense, useEffect, useMemo, useRef } from 'react';
 import { Canvas, useFrame, useThree } from '@react-three/fiber';
-import { PerspectiveCamera } from '@react-three/drei';
+import { PerspectiveCamera, ContactShadows } from '@react-three/drei';
+import { EffectComposer, Bloom, Vignette } from '@react-three/postprocessing';
 import * as THREE from 'three';
 import Box from '@mui/material/Box';
 
@@ -325,6 +326,15 @@ function OnionScene({ layers, peeledCount, isAnimating, onPeelComplete, onCanvas
       <directionalLight position={ [0, -4, 2] } intensity={ 0.08 } color="#FFE8C0" />
 
       <group>
+        <ContactShadows
+          position={ [0, -1.42, 0] }
+          opacity={ 0.45 }
+          scale={ 5 }
+          blur={ 2.5 }
+          far={ 3 }
+          color="#000000"
+        />
+
         {/* 패럴랙스 그룹 — 마우스 추적 회전 */}
         <group ref={ groupRef } position={ [0, 0.10, 0] }>
           { peeledCount < layers.length && !(isAnimating && peeledCount === layers.length - 1) && (
@@ -350,6 +360,11 @@ function OnionScene({ layers, peeledCount, isAnimating, onPeelComplete, onCanvas
           </group>
         </group>
       </group>
+
+      <EffectComposer>
+        <Bloom luminanceThreshold={ 0.7 } luminanceSmoothing={ 0.9 } intensity={ 0.55 } mipmapBlur />
+        <Vignette offset={ 0.38 } darkness={ 0.62 } />
+      </EffectComposer>
     </>
   );
 }
