@@ -50,8 +50,7 @@ function createSegmentGeometry(radius, segIndex) {
  */
 function createFleshSegmentGeometry(radius, segIndex) {
   const slotAngle = (1 / NUM_SEGMENTS) * Math.PI * 2;
-  const r = radius * 0.94;
-  const points = ONION_PROFILE.map(([x, y]) => new THREE.Vector2(x * r, y * r));
+  const points = ONION_PROFILE.map(([x, y]) => new THREE.Vector2(x * radius, y * radius));
   const geometry = new THREE.LatheGeometry(points, 6, segIndex * slotAngle, slotAngle);
   geometry.computeVertexNormals();
   return geometry;
@@ -60,11 +59,16 @@ function createFleshSegmentGeometry(radius, segIndex) {
 /**
  * 초록 줄기 — 레이어와 독립, 항상 렌더.
  * peeledCount에 따라 현재 최외곽 레이어의 neck 위치로 이동하고 비율 축소.
+ * isAnimating 중에는 한 단계 안쪽 레이어 기준으로 미리 이동 →
+ * 껍질이 날아가며 드러나는 내부 neck과 줄기가 일치해 연결된 것처럼 보임.
  *
  * @param {number} peeledCount - 현재까지 벗겨진 레이어 수
+ * @param {boolean} isAnimating - 껍질 벗기기 애니메이션 진행 여부
+ * @param {number} totalLayers - 전체 레이어 수 (범위 초과 방지)
  */
-function OnionStem({ peeledCount = 0 }) {
-  const currentRadius = getRadius(peeledCount);
+function OnionStem({ peeledCount = 0, isAnimating = false, totalLayers = 1 }) {
+  const stemIndex = isAnimating ? Math.min(peeledCount + 1, totalLayers - 1) : peeledCount;
+  const currentRadius = getRadius(stemIndex);
   const scale = currentRadius / getRadius(0);
   const baseY = currentRadius * 0.91;
 
@@ -193,34 +197,50 @@ function OnionSegmentMesh({ layer, index, segIndex, isPeeling, isLastSegment, on
  * OnionLayer
  *
  * 하나의 스킬 레이어 = 속살 shell + NUM_SEGMENTS 쐐기 세그먼트.
- * 완전히 벗겨진 레이어(alreadyPeeled)는 null 반환.
+ *
+ * 전환 무결성 원칙:
+ * - 속살(flesh)의 반지름·재질을 다음 레이어와 완전히 일치시킨다.
+ * - 바깥 레이어 peel 중에는 바로 안쪽 레이어(isNextLayer)를 숨긴다.
+ * - peeledCount 업데이트 시 flesh(사라짐) ↔ 다음 레이어 세그먼트(등장)가
+ *   동일 반지름·재질이므로 시각적 전환이 없다.
  */
-function OnionLayer({ layer, index, nextColor, peeledCount, isAnimating, onPeelComplete }) {
+function OnionLayer({ layer, index, nextLayer, peeledCount, isAnimating, onPeelComplete }) {
+  // flesh는 다음 레이어와 동일한 반지름에 배치
+  const fleshRadius = nextLayer ? getRadius(index + 1) : getRadius(index) * 0.94;
+  // flesh 재질을 다음 레이어 공식과 맞춤
+  const fleshRoughness = Math.max(0.5, 0.88 - (index + 1) * 0.05);
+  const fleshMetalness = 0.02 + (index + 1) * 0.004;
+
   // hooks는 조건부 return 전에 모두 선언
   const fleshGeometries = useMemo(
-    () => Array.from({ length: NUM_SEGMENTS }, (_, i) => createFleshSegmentGeometry(getRadius(index), i)),
-    [index]
+    () => Array.from({ length: NUM_SEGMENTS }, (_, i) => createFleshSegmentGeometry(fleshRadius, i)),
+    [fleshRadius]
   );
 
   const alreadyPeeled = index < peeledCount;
   const isCurrentlyPeeling = isAnimating && index === peeledCount;
 
+  // 현재 최외곽 레이어(peeledCount)만 렌더 — 내부 레이어는 flesh가 대신하므로 불필요.
+  // 모든 내부 레이어를 동시에 렌더하면 Three.js 투명 오브젝트 정렬 오류로
+  // 깊이 순서가 뒤집혀 사이즈가 달라 보이는 아티팩트가 발생한다.
   if (alreadyPeeled && !isCurrentlyPeeling) return null;
+  if (index > peeledCount) return null;
 
   const isCurrentOuter = index === peeledCount;
-  const fleshColor = nextColor || '#F5EBD4';
 
   return (
     <group>
-      {/* 속살 — 다음 레이어 색상 + 외곽과 동일한 세로 리브 */}
-      { isCurrentOuter && fleshGeometries.map((geo, i) => (
+      {/* 속살 — 반지름·재질이 다음 레이어와 동일 → 전환 시 팝 없음 */}
+      { isCurrentOuter && nextLayer && fleshGeometries.map((geo, i) => (
         <mesh key={ i } geometry={ geo }>
           <meshPhysicalMaterial
-            color={ fleshColor }
-            roughness={ 0.55 }
-            metalness={ 0 }
-            clearcoat={ 0.15 }
-            clearcoatRoughness={ 0.7 }
+            color={ nextLayer.color }
+            emissive={ nextLayer.emissiveColor || '#000000' }
+            emissiveIntensity={ 0.08 }
+            roughness={ fleshRoughness }
+            metalness={ fleshMetalness }
+            clearcoat={ 0.3 }
+            clearcoatRoughness={ 0.6 }
           />
         </mesh>
       )) }
@@ -257,7 +277,13 @@ function OnionScene({ layers, peeledCount, isAnimating, onPeelComplete, onCanvas
       <directionalLight position={ [0, -4, 2] } intensity={ 0.15 } color="#FFF0D0" />
 
       {/* 줄기 — 레이어가 벗겨질수록 축소, 모두 벗겨지면 숨김 */}
-      { peeledCount < layers.length && <OnionStem peeledCount={ peeledCount } /> }
+      { peeledCount < layers.length && (
+        <OnionStem
+          peeledCount={ peeledCount }
+          isAnimating={ isAnimating }
+          totalLayers={ layers.length }
+        />
+      ) }
 
       {/* 양파 레이어 그룹 — 클릭 이벤트 수신 */}
       <group onClick={ (e) => { e.stopPropagation(); onCanvasClick?.(); } }>
@@ -266,7 +292,7 @@ function OnionScene({ layers, peeledCount, isAnimating, onPeelComplete, onCanvas
             key={ layer.id }
             layer={ layer }
             index={ index }
-            nextColor={ layers[index + 1]?.color }
+            nextLayer={ layers[index + 1] }
             peeledCount={ peeledCount }
             isAnimating={ isAnimating }
             onPeelComplete={ onPeelComplete }
