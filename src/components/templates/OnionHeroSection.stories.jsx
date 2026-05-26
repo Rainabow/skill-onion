@@ -11,9 +11,11 @@ export default {
       description: {
         component: [
           'The Skill Onion 히어로 섹션 루트 컴포넌트.',
+          '배경: Radial glow(중앙 빛 번짐) + SVG 등고선 레이어(양파 껍질 개념 시각화).',
+          '타이포그래피: "Unpeeling my Skillset" — Un(Playfair italic 500, SVG 타원 서클), S(Playfair italic 900), 나머지 Outfit 900. h1 중앙 정렬.',
           '양파 클릭 시 껍질이 순차 박리되고 스킬 카테고리가 공개된다.',
           '우상단 아이콘으로 사운드 ON/OFF 토글 가능 (Web Audio API 합성음).',
-          '모든 레이어 완료 시 Get in Touch / View Work CTA와 ↺ peel again 버튼이 등장한다.',
+          '모든 레이어 완료 시 h1 사라지고 Get in Touch / View Work CTA가 화면 수직 중앙에 등장. ↺ peel again으로 리셋.',
         ].join(' '),
       },
     },

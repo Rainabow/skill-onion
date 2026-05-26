@@ -105,8 +105,8 @@ function OnionHeroSection({
           position: 'absolute',
           inset: 0,
           background: [
-            'radial-gradient(ellipse 70% 55% at 50% 55%, rgba(255,255,255,0.13) 0%, transparent 70%)',
-            'radial-gradient(ellipse 40% 30% at 50% 58%, rgba(255,255,255,0.10) 0%, transparent 60%)',
+            'radial-gradient(ellipse 160% 120% at 50% 55%, rgba(255,255,255,0.10) 0%, transparent 75%)',
+            'radial-gradient(ellipse 80% 60% at 50% 58%, rgba(255,255,255,0.07) 0%, transparent 65%)',
           ].join(', '),
           zIndex: 0,
           pointerEvents: 'none',
