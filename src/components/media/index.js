@@ -19,3 +19,6 @@ export { Indicator } from '../../common/ui/Indicator.jsx';
 
 // CarouselIndicator - 레거시 호환용 (Indicator 사용 권장)
 export { CarouselIndicator } from './CarouselIndicator.jsx';
+
+// OnionVisualization - Three.js 기반 3D 양파 인터랙션
+export { OnionVisualization } from './OnionVisualization.jsx';
