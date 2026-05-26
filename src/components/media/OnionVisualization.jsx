@@ -1,6 +1,6 @@
 import { Suspense, useEffect, useMemo, useRef } from 'react';
 import { Canvas, useFrame, useThree } from '@react-three/fiber';
-import { PerspectiveCamera, ContactShadows } from '@react-three/drei';
+import { PerspectiveCamera } from '@react-three/drei';
 import { EffectComposer, Bloom, Vignette } from '@react-three/postprocessing';
 import * as THREE from 'three';
 import Box from '@mui/material/Box';
@@ -295,6 +295,31 @@ function OnionLayer({ layer, index, nextLayer, peeledCount, isAnimating, onPeelC
   );
 }
 
+/** 양파 아래 타원형 그림자 */
+function EllipseShadow() {
+  const texture = useMemo(() => {
+    const size = 256;
+    const canvas = document.createElement('canvas');
+    canvas.width = size;
+    canvas.height = size;
+    const ctx = canvas.getContext('2d');
+    const grd = ctx.createRadialGradient(size / 2, size / 2, 0, size / 2, size / 2, size / 2);
+    grd.addColorStop(0,   'rgba(0, 0, 0, 0.72)');
+    grd.addColorStop(0.45, 'rgba(0, 0, 0, 0.30)');
+    grd.addColorStop(1,   'rgba(0, 0, 0, 0)');
+    ctx.fillStyle = grd;
+    ctx.fillRect(0, 0, size, size);
+    return new THREE.CanvasTexture(canvas);
+  }, []);
+
+  return (
+    <mesh rotation={ [-Math.PI / 2, 0, 0] } position={ [0, -1.50, 0] }>
+      <planeGeometry args={ [3.2, 1.1] } />
+      <meshBasicMaterial map={ texture } transparent depthWrite={ false } />
+    </mesh>
+  );
+}
+
 /**
  * OnionScene — Canvas 내부 장면.
  * mouse parallax: useThree().mouse → useFrame lerp(0.05) 으로 groupRef 회전.
@@ -326,14 +351,7 @@ function OnionScene({ layers, peeledCount, isAnimating, onPeelComplete, onCanvas
       <directionalLight position={ [0, -4, 2] } intensity={ 0.08 } color="#FFE8C0" />
 
       <group>
-        <ContactShadows
-          position={ [0, -1.42, 0] }
-          opacity={ 0.45 }
-          scale={ 5 }
-          blur={ 2.5 }
-          far={ 3 }
-          color="#000000"
-        />
+        <EllipseShadow />
 
         {/* 패럴랙스 그룹 — 마우스 추적 회전 */}
         <group ref={ groupRef } position={ [0, 0.10, 0] }>
