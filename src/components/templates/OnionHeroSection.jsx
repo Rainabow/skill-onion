@@ -152,32 +152,27 @@ function OnionHeroSection({
                   lineHeight: 0.88,
                   fontSize: 'clamp(3rem, 9.5vw, 10rem)',
                   letterSpacing: '-0.03em',
+                  textAlign: 'center',
                 } }
               >
-                Unpeeling my skillset
+                <Box
+                    component="span"
+                    sx={ {
+                      fontFamily: '"Playfair Display", serif',
+                      fontStyle: 'italic',
+                      fontWeight: 500,
+                    } }
+                  >Un</Box>peeling my <Box
+                    component="span"
+                    sx={ {
+                      fontFamily: '"Playfair Display", serif',
+                      fontStyle: 'italic',
+                      fontWeight: 900,
+                    } }
+                  >S</Box>killset
               </Typography>
             </motion.div>
-          ) : (
-            <motion.div
-              key="h1-complete"
-              initial={ { opacity: 0, y: -12 } }
-              animate={ { opacity: 1, y: 0 } }
-              transition={ { duration: 0.5, ease: [0.22, 1, 0.36, 1] } }
-            >
-              <Typography
-                variant="h2"
-                sx={ {
-                  fontWeight: 900,
-                  color: 'common.white',
-                  lineHeight: 0.88,
-                  fontSize: 'clamp(2.5rem, 7vw, 7.5rem)',
-                  letterSpacing: '-0.03em',
-                } }
-              >
-                You&apos;ve seen it all.
-              </Typography>
-            </motion.div>
-          ) }
+          ) : null }
         </AnimatePresence>
       </Box>
 
@@ -360,7 +355,10 @@ function OnionHeroSection({
       <Box
         sx={ {
           position: 'absolute',
-          bottom: { xs: 32, md: 48 },
+          ...(isComplete
+            ? { top: '50%', transform: 'translateY(-50%)' }
+            : { bottom: { xs: 32, md: 48 } }
+          ),
           left: 0,
           right: 0,
           display: 'flex',
