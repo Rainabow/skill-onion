@@ -8,6 +8,7 @@ import TableHead from '@mui/material/TableHead';
 import TableRow from '@mui/material/TableRow';
 import Typography from '@mui/material/Typography';
 import { DocumentTitle, PageContainer, SectionTitle } from '../../components/storybookDocumentation';
+import { skillLayers } from '../../data/skillLayers';
 
 export default {
   title: 'Overview/The Skill Onion/03 Visual Direction',
@@ -30,16 +31,12 @@ const textColors = [
   { label: '3차 텍스트', value: 'rgba(255,255,255,0.4)', usage: 'Kicker, 진행 카운터' },
 ];
 
-const onionLayers = [
-  { layer: '1 (최외곽)', category: 'UI / UX Design', color: '#3D1A08', emissive: '#7A3010' },
-  { layer: '2', category: 'Visual Design', color: '#6B2D0F', emissive: '#A0441A' },
-  { layer: '3', category: 'Design System', color: '#8B4A1A', emissive: '#C06828' },
-  { layer: '4', category: 'Frontend', color: '#7A5C1A', emissive: '#B08020' },
-  { layer: '5', category: 'Motion & Interaction', color: '#5C6B1A', emissive: '#8A9A28' },
-  { layer: '6', category: 'Research & Strategy', color: '#3D6B2A', emissive: '#5A9A3A' },
-  { layer: '7', category: 'Collaboration', color: '#2A6B3D', emissive: '#3A9A5A' },
-  { layer: '8 (최내부)', category: 'Core Identity', color: '#D8EAA0', emissive: '#B8D460' },
-];
+const onionLayers = skillLayers.map((l, i) => ({
+  layer: i === 0 ? '1 (최외곽)' : i === skillLayers.length - 1 ? `${i + 1} (최내부)` : `${i + 1}`,
+  category: l.category,
+  color: l.color,
+  emissive: l.emissiveColor,
+}));
 
 const ctaColors = [
   { label: 'View Work (outlined)', border: 'rgba(255,255,255,0.5)', bg: 'transparent', text: '#FFFFFF', desc: '절제된 화이트 아웃라인' },

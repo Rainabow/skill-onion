@@ -2,7 +2,6 @@ import { useCallback, useRef, useState } from 'react';
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
 import IconButton from '@mui/material/IconButton';
-import Switch from '@mui/material/Switch';
 import Typography from '@mui/material/Typography';
 import VolumeOffIcon from '@mui/icons-material/VolumeOff';
 import VolumeUpIcon from '@mui/icons-material/VolumeUp';
@@ -12,6 +11,7 @@ import { SkillRevealPanel } from '../card/SkillRevealPanel';
 import { LayerProgressBar } from '../data-display/LayerProgressBar';
 import { OnionVisualization } from '../media/OnionVisualization';
 import { skillLayers } from '../../data/skillLayers';
+import { playPeelSound } from '../../utils/peelSound';
 
 const completionVariants = {
   hidden: { opacity: 0, scale: 0.96 },
@@ -70,9 +70,9 @@ function OnionHeroSection({
 
   const handleClick = useCallback(() => {
     if (isAnimating || isComplete) return;
+    if (isSoundEnabled) playPeelSound();
     setIsAnimating(true);
-    // TODO: isSoundEnabled && playPeelSound();
-  }, [isAnimating, isComplete]);
+  }, [isAnimating, isComplete, isSoundEnabled]);
 
   const handlePeelComplete = useCallback(() => {
     const next = peeledCount + 1;
@@ -110,34 +110,20 @@ function OnionHeroSection({
       />
 
       {/* 사운드 토글 — 우상단 고정 */}
-      <Box
+      <IconButton
+        size="small"
+        onClick={ () => setIsSoundEnabled((v) => !v) }
         sx={ {
           position: 'absolute',
           top: { xs: 16, md: 24 },
           right: { xs: 16, md: 32 },
           zIndex: 10,
-          display: 'flex',
-          alignItems: 'center',
-          gap: 0.5,
+          color: isSoundEnabled ? 'rgba(255,255,255,0.85)' : 'rgba(255,255,255,0.35)',
+          '&:hover': { color: 'rgba(255,255,255,0.85)', backgroundColor: 'transparent' },
         } }
       >
-        <IconButton
-          size="small"
-          onClick={ () => setIsSoundEnabled((v) => !v) }
-          sx={ { color: 'rgba(255,255,255,0.45)', '&:hover': { color: 'rgba(255,255,255,0.85)' } } }
-        >
-          { isSoundEnabled ? <VolumeUpIcon fontSize="small" /> : <VolumeOffIcon fontSize="small" /> }
-        </IconButton>
-        <Switch
-          checked={ isSoundEnabled }
-          onChange={ (e) => setIsSoundEnabled(e.target.checked) }
-          size="small"
-          sx={ {
-            '& .MuiSwitch-thumb': { backgroundColor: isSoundEnabled ? '#fff' : 'rgba(255,255,255,0.3)' },
-            '& .MuiSwitch-track': { backgroundColor: 'rgba(255,255,255,0.15) !important' },
-          } }
-        />
-      </Box>
+        { isSoundEnabled ? <VolumeUpIcon fontSize="small" /> : <VolumeOffIcon fontSize="small" /> }
+      </IconButton>
 
       {/* 좌측 — 양파 + 진행 바 */}
       <Box
