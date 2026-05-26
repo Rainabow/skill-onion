@@ -72,8 +72,8 @@ function OnionLayerMesh({ layer, index, isPeeling, onPeelComplete }) {
   });
 
   const radius = getRadius(index);
-  const roughness = Math.max(0.35, 0.88 - index * 0.06);
-  const metalness = 0.02 + index * 0.02;
+  const roughness = Math.max(0.5, 0.88 - index * 0.05);
+  const metalness = 0.02 + index * 0.004;
 
   return (
     <mesh

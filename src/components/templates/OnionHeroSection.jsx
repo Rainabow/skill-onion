@@ -229,14 +229,10 @@ function OnionHeroSection({
             >
               {/* Kicker */}
               <Typography
-                variant="caption"
+                variant="overline"
                 sx={ {
                   color: 'rgba(255,255,255,0.4)',
-                  fontFamily: 'monospace',
-                  fontWeight: 600,
-                  letterSpacing: '0.2em',
-                  textTransform: 'uppercase',
-                  fontSize: 11,
+                  display: 'block',
                 } }
               >
                 The Skill Onion Project
@@ -246,10 +242,10 @@ function OnionHeroSection({
               <Typography
                 variant="h2"
                 sx={ {
-                  fontWeight: 700,
+                  fontWeight: 900,
                   color: 'common.white',
                   lineHeight: 1.1,
-                  fontSize: { xs: '2rem', md: '2.75rem' },
+                  fontSize: 'clamp(2.8rem, 5vw, 5rem)',
                 } }
               >
                 Like an Onion: Layers of Skills to Peel Back.
@@ -259,7 +255,7 @@ function OnionHeroSection({
               { !hasStarted && (
                 <Typography
                   variant="body1"
-                  sx={ { color: 'rgba(255,255,255,0.5)', lineHeight: 1.7, maxWidth: 380 } }
+                  sx={ { color: 'rgba(255,255,255,0.7)', lineHeight: 1.7, maxWidth: 440 } }
                 >
                   I&apos;m a UI/UX designer with depth. Click to peel back the layers and
                   discover the diverse skill set I bring to the table.
@@ -317,7 +313,7 @@ function OnionHeroSection({
               >
                 <Button
                   variant="contained"
-                  onClick={ onViewWork }
+                  onClick={ onGetInTouch }
                   sx={ {
                     backgroundColor: 'common.white',
                     color: '#080808',
@@ -326,11 +322,11 @@ function OnionHeroSection({
                     '&:hover': { backgroundColor: 'rgba(255,255,255,0.85)' },
                   } }
                 >
-                  View Work
+                  Get in Touch
                 </Button>
                 <Button
                   variant="outlined"
-                  onClick={ onGetInTouch }
+                  onClick={ onViewWork }
                   sx={ {
                     borderColor: 'rgba(255,255,255,0.4)',
                     color: 'rgba(255,255,255,0.85)',
@@ -342,7 +338,7 @@ function OnionHeroSection({
                     },
                   } }
                 >
-                  Get in Touch
+                  View Work
                 </Button>
               </motion.div>
 
