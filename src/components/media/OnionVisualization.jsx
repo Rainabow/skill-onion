@@ -1,38 +1,105 @@
 import { Suspense, useEffect, useMemo, useRef } from 'react';
-import { Canvas, useFrame } from '@react-three/fiber';
+import { Canvas, useFrame, useThree } from '@react-three/fiber';
 import { PerspectiveCamera } from '@react-three/drei';
 import * as THREE from 'three';
 import Box from '@mui/material/Box';
 
 const NUM_SEGMENTS = 12;
 const PEEL_SPEED = 1.8;
-const STAGGER_INTERVAL = 0.05; // 세그먼트 간 출발 간격 (초)
-const SEG_GAP = 1.0; // 세그먼트 실제 점유 비율 (1 - 간격 비율)
+const STAGGER_INTERVAL = 0.05;
+const SEG_GAP = 1.0; // 세그먼트 간 물리 갭 없음
 
 /** 레이어 인덱스 → 구체 반지름 (바깥→안) */
 const getRadius = (index) => 1.6 - index * 0.155;
 
 /**
- * 양파 단면 프로파일 (unit scale, max x = 1)
- * 레퍼런스 이미지 기준: 아래 납작 → 중간 볼록 → neck 좁음
+ * 클레이 스타일 양파 단면 프로파일
+ * 하단 납작+넓음, 최대폭 낮게, neck 좁게 → 귀여운 볼륨감
  */
 const ONION_PROFILE = [
-  [0.00, -0.88],
-  [0.42, -0.83],
-  [0.80, -0.52],
-  [1.00, -0.05],
-  [0.96,  0.32],
-  [0.75,  0.62],
-  [0.45,  0.80],
-  [0.18,  0.92],
+  [0.00, -0.95],
+  [0.55, -0.90],
+  [0.90, -0.52],
+  [1.00, -0.12],
+  [0.92,  0.28],
+  [0.70,  0.56],
+  [0.40,  0.76],
+  [0.12,  0.90],
   [0.00,  1.00],
 ];
 
 /**
- * 레이어 하나의 각도 세그먼트 geometry.
- * SEG_GAP < 1 → 세그먼트 사이에 물리적 간격이 생겨 세로 리브 라인이 뚜렷해짐.
- * 각 세그먼트의 phiStart는 간격 중앙에 오도록 offset.
+ * Canvas 기반 클레이 matcap 텍스처 생성
+ *
+ * Blender Principled BSDF 인사이트 반영:
+ * - Roughness 0.35 → 날카로운 스페큘러 핫스팟
+ * - Specular 0.5 → 밝은 하이라이트 피크
+ * - SSS 0.05~0.1 → 경계부 따뜻한 앰버 글로우로 시뮬레이션
+ * - 하단 바운스 라이트 → 지면 반사 따뜻한 fill
+ *
+ * MeshMatcapMaterial의 color prop으로 레이어별 색상을 틴팅한다.
  */
+function createClayMatcap() {
+  const size = 256;
+  const canvas = document.createElement('canvas');
+  canvas.width = size;
+  canvas.height = size;
+  const ctx = canvas.getContext('2d');
+  const cx = size / 2, cy = size / 2, r = size / 2;
+
+  const clip = () => {
+    ctx.beginPath();
+    ctx.arc(cx, cy, r, 0, Math.PI * 2);
+  };
+
+  // base mid-tone
+  clip();
+  ctx.fillStyle = '#9E9890';
+  ctx.fill();
+
+  // primary specular highlight — upper-left, roughness 0.35 기준 날카로운 핫스팟
+  const hl = ctx.createRadialGradient(cx * 0.50, cy * 0.40, 0, cx * 0.50, cy * 0.40, r * 0.65);
+  hl.addColorStop(0,    'rgba(255,255,252,0.96)');
+  hl.addColorStop(0.18, 'rgba(255,248,232,0.72)');
+  hl.addColorStop(0.50, 'rgba(230,208,172,0.28)');
+  hl.addColorStop(1,    'rgba(0,0,0,0)');
+  clip(); ctx.fillStyle = hl; ctx.fill();
+
+  // secondary soft fill — center-right
+  const hl2 = ctx.createRadialGradient(cx * 0.90, cy * 0.74, 0, cx * 0.90, cy * 0.74, r * 0.40);
+  hl2.addColorStop(0, 'rgba(255,238,195,0.20)');
+  hl2.addColorStop(1, 'rgba(0,0,0,0)');
+  clip(); ctx.fillStyle = hl2; ctx.fill();
+
+  // shadow — lower-right
+  const sh = ctx.createRadialGradient(cx * 1.38, cy * 1.45, 0, cx * 1.38, cy * 1.45, r * 0.84);
+  sh.addColorStop(0, 'rgba(24,8,0,0.64)');
+  sh.addColorStop(1, 'rgba(0,0,0,0)');
+  clip(); ctx.fillStyle = sh; ctx.fill();
+
+  // SSS 경계 글로우 — 얇은 부분에서 빛이 투과되는 따뜻한 앰버
+  const sss = ctx.createRadialGradient(cx, cy, r * 0.60, cx, cy, r);
+  sss.addColorStop(0,   'rgba(0,0,0,0)');
+  sss.addColorStop(0.72, 'rgba(0,0,0,0)');
+  sss.addColorStop(1,   'rgba(190,80,10,0.32)');
+  clip(); ctx.fillStyle = sss; ctx.fill();
+
+  // 하단 바운스 라이트 — 지면 반사 warm fill
+  const bounce = ctx.createRadialGradient(cx, cy * 1.82, 0, cx, cy * 1.82, r * 0.58);
+  bounce.addColorStop(0, 'rgba(210,118,38,0.16)');
+  bounce.addColorStop(1, 'rgba(0,0,0,0)');
+  clip(); ctx.fillStyle = bounce; ctx.fill();
+
+  return new THREE.CanvasTexture(canvas);
+}
+
+// 모듈 전역 싱글턴 — 모든 세그먼트가 동일 텍스처 객체 공유
+let _clayMatcap = null;
+const getClayMatcap = () => {
+  if (!_clayMatcap) _clayMatcap = createClayMatcap();
+  return _clayMatcap;
+};
+
 function createSegmentGeometry(radius, segIndex) {
   const slotAngle = (1 / NUM_SEGMENTS) * Math.PI * 2;
   const phiLength = slotAngle * SEG_GAP;
@@ -43,11 +110,6 @@ function createSegmentGeometry(radius, segIndex) {
   return geometry;
 }
 
-/**
- * 속살 세그먼트 geometry.
- * 외곽 세그먼트와 동일한 각도 분할 + 각자 computeVertexNormals →
- * 경계마다 법선 불연속 → 외곽과 동일한 세로 리브 조명 효과.
- */
 function createFleshSegmentGeometry(radius, segIndex) {
   const slotAngle = (1 / NUM_SEGMENTS) * Math.PI * 2;
   const points = ONION_PROFILE.map(([x, y]) => new THREE.Vector2(x * radius, y * radius));
@@ -57,14 +119,12 @@ function createFleshSegmentGeometry(radius, segIndex) {
 }
 
 /**
- * 초록 줄기 — 레이어와 독립, 항상 렌더.
- * peeledCount에 따라 현재 최외곽 레이어의 neck 위치로 이동하고 비율 축소.
- * isAnimating 중에는 한 단계 안쪽 레이어 기준으로 미리 이동 →
- * 껍질이 날아가며 드러나는 내부 neck과 줄기가 일치해 연결된 것처럼 보임.
+ * 초록 줄기
  *
- * @param {number} peeledCount - 현재까지 벗겨진 레이어 수
- * @param {boolean} isAnimating - 껍질 벗기기 애니메이션 진행 여부
- * @param {number} totalLayers - 전체 레이어 수 (범위 초과 방지)
+ * Props:
+ * @param {number} peeledCount - 현재까지 벗겨진 레이어 수 [Required]
+ * @param {boolean} isAnimating - 껍질 벗기기 애니메이션 진행 여부 [Required]
+ * @param {number} totalLayers - 전체 레이어 수 [Required]
  */
 function OnionStem({ peeledCount = 0, isAnimating = false, totalLayers = 1 }) {
   const stemIndex = isAnimating ? Math.min(peeledCount + 1, totalLayers - 1) : peeledCount;
@@ -80,17 +140,14 @@ function OnionStem({ peeledCount = 0, isAnimating = false, totalLayers = 1 }) {
 
   return (
     <group position={ [0, baseY, 0] } scale={ [scale, scale, scale] }>
-      {/* neck → stem 연결 connector cone */}
       <mesh>
         <cylinderGeometry args={ [0.06, 0.20, 0.22, 10] } />
         <meshStandardMaterial color="#4A3010" roughness={ 0.85 } />
       </mesh>
-      {/* 줄기 기둥 */}
       <mesh position={ [0, 0.18, 0] }>
         <cylinderGeometry args={ [0.045, 0.06, 0.14, 8] } />
         <meshStandardMaterial color="#2D5A27" roughness={ 0.80 } />
       </mesh>
-      {/* 잎 3개 */}
       { leaves.map((leaf, i) => (
         <group key={ i } rotation={ [0, leaf.rotY, leaf.tiltZ] }>
           <mesh position={ [0, 0.40, 0] }>
@@ -106,28 +163,27 @@ function OnionStem({ peeledCount = 0, isAnimating = false, totalLayers = 1 }) {
 /**
  * OnionSegmentMesh
  *
- * 레이어 하나의 쐐기 세그먼트.
- * isPeeling = true 시 자신의 방위각 방향으로 날아가며 사라진다.
- * elapsedTime 기반 stagger로 segIndex 순서대로 출발.
+ * 레이어 하나의 쐐기 세그먼트. MeshMatcapMaterial + clay matcap 사용.
+ * isPeeling = true 시 방위각 방향으로 날아가며 사라진다.
  *
  * Props:
  * @param {object} layer - 레이어 데이터 [Required]
  * @param {number} index - 레이어 인덱스 [Required]
  * @param {number} segIndex - 세그먼트 인덱스 (0 ~ NUM_SEGMENTS-1) [Required]
  * @param {boolean} isPeeling - 이 레이어가 현재 벗겨지는 중인지 [Required]
- * @param {boolean} isLastSegment - 마지막 세그먼트 여부 → onPeelComplete 트리거 [Required]
+ * @param {boolean} isLastSegment - 마지막 세그먼트 여부 [Required]
  * @param {function} onPeelComplete - 마지막 세그먼트 완료 시 콜백 [Required]
  */
 function OnionSegmentMesh({ layer, index, segIndex, isPeeling, isLastSegment, onPeelComplete }) {
   const meshRef = useRef();
   const animRef = useRef({ elapsedTime: 0, completed: false });
+  const matcap = useMemo(() => getClayMatcap(), []);
 
   const geometry = useMemo(
     () => createSegmentGeometry(getRadius(index), segIndex),
     [index, segIndex]
   );
 
-  // 이 세그먼트의 방위각 중심 방향 (radially outward)
   const midAngle = ((segIndex + 0.5) / NUM_SEGMENTS) * Math.PI * 2;
   const dirX = Math.cos(midAngle);
   const dirZ = Math.sin(midAngle);
@@ -154,13 +210,10 @@ function OnionSegmentMesh({ layer, index, segIndex, isPeeling, isLastSegment, on
     const t = Math.min(1, Math.max(0, anim.elapsedTime - startDelay) * PEEL_SPEED);
     if (t <= 0) return;
 
-    // easeInOut cubic
     const eased = t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
     const m = meshRef.current;
 
-    // 방위각 방향으로 날아가며 위로 솟음
     m.position.set(dirX * eased * 3.8, eased * 2.0, dirZ * eased * 3.8);
-    // 날아가며 회전
     m.rotation.y += delta * (dirZ > 0 ? 2.8 : -2.8);
     m.rotation.x += delta * 1.2;
     m.material.opacity = Math.max(0, 1 - eased * 1.8);
@@ -172,19 +225,11 @@ function OnionSegmentMesh({ layer, index, segIndex, isPeeling, isLastSegment, on
     }
   });
 
-  const roughness = Math.max(0.5, 0.88 - index * 0.05);
-  const metalness = 0.02 + index * 0.004;
-
   return (
     <mesh ref={ meshRef } geometry={ geometry }>
-      <meshPhysicalMaterial
+      <meshMatcapMaterial
+        matcap={ matcap }
         color={ layer.color }
-        emissive={ layer.emissiveColor || '#000000' }
-        emissiveIntensity={ 0.08 }
-        roughness={ roughness }
-        metalness={ metalness }
-        clearcoat={ 0.3 }
-        clearcoatRoughness={ 0.6 }
         transparent
         opacity={ 1 }
         side={ THREE.DoubleSide }
@@ -197,21 +242,20 @@ function OnionSegmentMesh({ layer, index, segIndex, isPeeling, isLastSegment, on
  * OnionLayer
  *
  * 하나의 스킬 레이어 = 속살 shell + NUM_SEGMENTS 쐐기 세그먼트.
+ * 속살과 세그먼트 모두 동일한 clay matcap 재질 사용.
  *
- * 전환 무결성 원칙:
- * - 속살(flesh)의 반지름·재질을 다음 레이어와 완전히 일치시킨다.
- * - 바깥 레이어 peel 중에는 바로 안쪽 레이어(isNextLayer)를 숨긴다.
- * - peeledCount 업데이트 시 flesh(사라짐) ↔ 다음 레이어 세그먼트(등장)가
- *   동일 반지름·재질이므로 시각적 전환이 없다.
+ * Props:
+ * @param {object} layer - 레이어 데이터 [Required]
+ * @param {number} index - 레이어 인덱스 [Required]
+ * @param {object} nextLayer - 다음(안쪽) 레이어 데이터 [Optional]
+ * @param {number} peeledCount - 현재까지 벗겨진 레이어 수 [Required]
+ * @param {boolean} isAnimating - 껍질 벗기기 애니메이션 진행 여부 [Required]
+ * @param {function} onPeelComplete - 마지막 세그먼트 완료 콜백 [Required]
  */
 function OnionLayer({ layer, index, nextLayer, peeledCount, isAnimating, onPeelComplete }) {
-  // flesh는 다음 레이어와 동일한 반지름에 배치
   const fleshRadius = nextLayer ? getRadius(index + 1) : getRadius(index) * 0.94;
-  // flesh 재질을 다음 레이어 공식과 맞춤
-  const fleshRoughness = Math.max(0.5, 0.88 - (index + 1) * 0.05);
-  const fleshMetalness = 0.02 + (index + 1) * 0.004;
+  const matcap = useMemo(() => getClayMatcap(), []);
 
-  // hooks는 조건부 return 전에 모두 선언
   const fleshGeometries = useMemo(
     () => Array.from({ length: NUM_SEGMENTS }, (_, i) => createFleshSegmentGeometry(fleshRadius, i)),
     [fleshRadius]
@@ -220,9 +264,6 @@ function OnionLayer({ layer, index, nextLayer, peeledCount, isAnimating, onPeelC
   const alreadyPeeled = index < peeledCount;
   const isCurrentlyPeeling = isAnimating && index === peeledCount;
 
-  // 현재 최외곽 레이어(peeledCount)만 렌더 — 내부 레이어는 flesh가 대신하므로 불필요.
-  // 모든 내부 레이어를 동시에 렌더하면 Three.js 투명 오브젝트 정렬 오류로
-  // 깊이 순서가 뒤집혀 사이즈가 달라 보이는 아티팩트가 발생한다.
   if (alreadyPeeled && !isCurrentlyPeeling) return null;
   if (index > peeledCount) return null;
 
@@ -230,21 +271,14 @@ function OnionLayer({ layer, index, nextLayer, peeledCount, isAnimating, onPeelC
 
   return (
     <group>
-      {/* 속살 — 반지름·재질이 다음 레이어와 동일 → 전환 시 팝 없음 */}
       { isCurrentOuter && nextLayer && fleshGeometries.map((geo, i) => (
         <mesh key={ i } geometry={ geo }>
-          <meshPhysicalMaterial
+          <meshMatcapMaterial
+            matcap={ matcap }
             color={ nextLayer.color }
-            emissive={ nextLayer.emissiveColor || '#000000' }
-            emissiveIntensity={ 0.08 }
-            roughness={ fleshRoughness }
-            metalness={ fleshMetalness }
-            clearcoat={ 0.3 }
-            clearcoatRoughness={ 0.6 }
           />
         </mesh>
       )) }
-      {/* 쐐기 세그먼트 */}
       { Array.from({ length: NUM_SEGMENTS }, (_, segIndex) => (
         <OnionSegmentMesh
           key={ segIndex }
@@ -261,43 +295,60 @@ function OnionLayer({ layer, index, nextLayer, peeledCount, isAnimating, onPeelC
 }
 
 /**
- * OnionScene — Canvas 내부 장면 컴포넌트
+ * OnionScene — Canvas 내부 장면.
+ * mouse parallax: useThree().mouse → useFrame lerp(0.05) 으로 groupRef 회전.
+ * isAnimating 중에는 center(0,0)로 복귀.
  */
 function OnionScene({ layers, peeledCount, isAnimating, onPeelComplete, onCanvasClick }) {
+  const groupRef = useRef();
+  const { mouse } = useThree();
+
+  useFrame(() => {
+    if (!groupRef.current) return;
+    const tx = isAnimating ? 0 : -mouse.y * 0.18;
+    const ty = isAnimating ? 0 : mouse.x * 0.10;
+    groupRef.current.rotation.x += (tx - groupRef.current.rotation.x) * 0.05;
+    groupRef.current.rotation.y += (ty - groupRef.current.rotation.y) * 0.05;
+  });
+
   return (
     <>
       <PerspectiveCamera makeDefault position={ [0, 0.3, 5.8] } fov={ 40 } />
 
-      {/* 키 라이트 — 좌상단 따뜻한 톤 */}
-      <ambientLight intensity={ 0.15 } />
-      <directionalLight position={ [-3, 5, 3] } intensity={ 2.5 } color="#FFF5E0" castShadow />
-      {/* 림 라이트 — 우후방 쿨톤, 세그먼트 경계 분리 */}
-      <directionalLight position={ [4, 2, -5] } intensity={ 0.55 } color="#B0C8FF" />
-      {/* 하단 fill */}
-      <directionalLight position={ [0, -4, 2] } intensity={ 0.15 } color="#FFF0D0" />
+      {/* 줄기 조명 — matcap 소재는 조명 무관, 줄기(MeshStandard)에만 적용 */}
+      <ambientLight intensity={ 0.55 } color="#FFF8F0" />
+      {/* 키라이트 — 레퍼런스 기준 좌상단 정면, 따뜻한 웜톤 */}
+      <directionalLight position={ [-3.5, 5.5, 4.5] } intensity={ 1.8 } color="#FFE0A8" castShadow />
+      {/* 림라이트 — 우하단 쿨톤, 줄기 윤곽선 분리 */}
+      <directionalLight position={ [3.5, -1, -3] } intensity={ 0.35 } color="#A8C0FF" />
+      {/* 하단 바운스 */}
+      <directionalLight position={ [0, -4, 2] } intensity={ 0.08 } color="#FFE8C0" />
 
-      {/* 줄기 — 레이어가 벗겨질수록 축소, 모두 벗겨지면 숨김 */}
-      { peeledCount < layers.length && (
-        <OnionStem
-          peeledCount={ peeledCount }
-          isAnimating={ isAnimating }
-          totalLayers={ layers.length }
-        />
-      ) }
+      <group>
+        {/* 패럴랙스 그룹 — 마우스 추적 회전 */}
+        <group ref={ groupRef } position={ [0, 0.10, 0] }>
+          { peeledCount < layers.length && !(isAnimating && peeledCount === layers.length - 1) && (
+            <OnionStem
+              peeledCount={ peeledCount }
+              isAnimating={ isAnimating }
+              totalLayers={ layers.length }
+            />
+          ) }
 
-      {/* 양파 레이어 그룹 — 클릭 이벤트 수신 */}
-      <group onClick={ (e) => { e.stopPropagation(); onCanvasClick?.(); } }>
-        { layers.map((layer, index) => (
-          <OnionLayer
-            key={ layer.id }
-            layer={ layer }
-            index={ index }
-            nextLayer={ layers[index + 1] }
-            peeledCount={ peeledCount }
-            isAnimating={ isAnimating }
-            onPeelComplete={ onPeelComplete }
-          />
-        )) }
+          <group onClick={ (e) => { e.stopPropagation(); onCanvasClick?.(); } }>
+            { layers.map((layer, index) => (
+              <OnionLayer
+                key={ layer.id }
+                layer={ layer }
+                index={ index }
+                nextLayer={ layers[index + 1] }
+                peeledCount={ peeledCount }
+                isAnimating={ isAnimating }
+                onPeelComplete={ onPeelComplete }
+              />
+            )) }
+          </group>
+        </group>
       </group>
     </>
   );
@@ -306,8 +357,9 @@ function OnionScene({ layers, peeledCount, isAnimating, onPeelComplete, onCanvas
 /**
  * OnionVisualization 컴포넌트
  *
- * Three.js + @react-three/fiber 기반 3D 양파.
- * 각 레이어는 NUM_SEGMENTS 개의 쐐기로 분할되어 클릭 시 순차 박리 애니메이션을 재생한다.
+ * Three.js + @react-three/fiber 기반 3D 클레이 양파.
+ * Canvas 기반 matcap 텍스처로 무광 클레이 질감 구현.
+ * 마우스 이동 시 시차 tilt 적용 (isAnimating 중 자동 복귀).
  *
  * Props:
  * @param {Array} layers - 레이어 데이터 배열 (skillLayers 형식) [Required]
