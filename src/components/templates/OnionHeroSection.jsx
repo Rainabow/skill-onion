@@ -394,16 +394,16 @@ function OnionHeroSection({
             >
               { !hasStarted && (
                 <Typography
-                  variant="body1"
+                  variant="h6"
                   sx={ {
                     color: 'rgba(255,255,255,0.7)',
+                    fontWeight: 500,
                     lineHeight: 1.7,
-                    maxWidth: 420,
+                    maxWidth: 480,
                     textAlign: 'center',
                   } }
                 >
-                  I&apos;m a UI/UX designer with depth. Click to peel back the layers and
-                  discover the diverse skill set I bring to the table.
+                  Great UX goes deeper than the surface — click to peel back the layers and explore my design capabilities.
                 </Typography>
               ) }
               {/* 모바일 전용 — 데스크탑은 좌우 패널로 표시 */}

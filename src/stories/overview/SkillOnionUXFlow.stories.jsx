@@ -91,7 +91,7 @@ const copywriting = [
   { role: 'Kicker (최상단 태그)', copy: 'The Skill Onion Project', note: '소문자 트래킹 넓게, 절제된 톤' },
   { role: 'H1 — 후보 A', copy: 'Like an Onion: Layers of Skills to Peel Back.', note: '양파 메타포 직접 명시' },
   { role: 'H1 — 후보 B', copy: 'Unpeeling my skillset', note: '동작 중심, 간결' },
-  { role: 'Subtext (서브 타이틀)', copy: "I'm a UI/UX designer with depth. Scroll to peel back the layers and discover the diverse skill set I bring to the table.", note: 'H1 아래 1~2줄, 인터랙션 유도 포함' },
+  { role: 'Subtext (서브 타이틀)', copy: 'Great UX goes deeper than the surface — click to peel back the layers and explore my design capabilities.', note: 'H1 아래 1~2줄, 인터랙션 유도 포함' },
 ];
 
 const dataModel = [

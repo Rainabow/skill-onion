@@ -118,7 +118,7 @@ flowchart TD
 | **Kicker** (최상단 태그) | `The Skill Onion Project` | 소문자 트래킹 넓게, 절제된 톤 |
 | **H1** (메인 타이틀) | `Like an Onion: Layers of Skills to Peel Back.` | 후보 A — 양파 메타포 직접 명시 |
 | **H1** (메인 타이틀) | `Unpeeling my skillset` | 후보 B — 동작 중심, 간결 |
-| **Subtext** (서브 타이틀) | `I'm a UI/UX designer with depth. Scroll to peel back the layers and discover the diverse skill set I bring to the table.` | H1 아래 1~2줄, 인터랙션 유도 포함 |
+| **Subtext** (서브 타이틀) | `Great UX goes deeper than the surface — click to peel back the layers and explore my design capabilities.` | H1 아래 1~2줄, 인터랙션 유도 포함 |
 
 > H1 후보 A / B 중 최종 선택은 Visual Direction 단계에서 결정
 
