@@ -22,22 +22,20 @@ const coreFeatures = [
   { id: 3, name: '스킬 키워드 오픈', desc: '껍질이 제거될 때마다 해당 레이어의 스킬셋 키워드가 등장하는 전환 애니메이션', priority: '필수' },
   { id: 4, name: '커서 팔로워', desc: '양파 오브젝트 호버 시 커서가 원형으로 변하고 [ PEEL ] 텍스트가 따라다님', priority: '필수' },
   { id: 5, name: '프로그레스 바', desc: '양파 옆/하단에 N / 총겹수 Layers 인디케이터 또는 게이지 바 표시', priority: '필수' },
-  { id: 6, name: '완료 상태', desc: '모든 껍질을 다 벗기면 최종 메시지 + CTA (View Work / Get in Touch) 노출', priority: '필수' },
+  { id: 6, name: '완료 상태', desc: '모든 껍질을 다 벗기면 최종 메시지 + CTA (View Work / Let\'s Connect) 노출', priority: '필수' },
   { id: 7, name: '사운드 이펙트', desc: '껍질 제거 시 바스락 효과음 재생 + 우상단 On/Off 토글 버튼 — 기본값: Off', priority: '선택' },
   { id: 8, name: '리셋 기능', desc: '완료 후 또는 언제든 양파를 원래대로 되돌릴 수 있는 리셋 트리거', priority: '선택' },
 ];
 
 const skillLayers = [
-  { layer: '1 (최외곽)', category: 'UI / UX Design', keywords: 'Figma · Wireframing · Prototyping' },
-  { layer: '2', category: 'Visual Design', keywords: 'Typography · Colour Systems · Layout' },
-  { layer: '3', category: 'Design System', keywords: 'Component Library · Tokens · Storybook' },
-  { layer: '4', category: 'Frontend', keywords: 'React · MUI · CSS Animation' },
-  { layer: '5', category: 'Motion & Interaction', keywords: 'Framer Motion · Micro-interaction · Transition' },
-  { layer: '6', category: 'Research & Strategy', keywords: 'User Research · Heuristics · IA' },
-  { layer: '7', category: 'Collaboration', keywords: 'Agile · Design Handoff · Notion · Jira' },
-  { layer: '8', category: 'Tools & Workflow', keywords: 'VSCode · Git · Zeplin · Slack' },
-  { layer: '9', category: 'Soft Skills', keywords: 'Communication · Ownership · Growth Mindset' },
-  { layer: '10 (최내부)', category: 'Core Identity', keywords: 'Problem Solver · Detail-Oriented · Perpetually Curious' },
+  { layer: '1 (최외곽)', category: 'Soft Skills',           keywords: 'Communication · Empathy · Collaboration · Growth Mindset' },
+  { layer: '2',          category: 'Product Thinking',      keywords: 'Problem Solver · Detail-Oriented · Perpetually Curious' },
+  { layer: '3',          category: 'Visual Design',         keywords: 'Typography · Colour Systems · Layout · Brand Consistency' },
+  { layer: '4',          category: 'Design System',         keywords: 'Component Library · Design Tokens · Storybook · Documentation' },
+  { layer: '5',          category: 'AI-Enhanced Workflow',  keywords: 'Prompt Engineering · AI-assisted Design · LLM Integration' },
+  { layer: '6',          category: 'UX Research',           keywords: 'User Interviews · Usability Testing · Prototyping · User Flows · Journey Mapping' },
+  { layer: '7',          category: 'Accessibility',          keywords: 'WCAG · Inclusive Design · Colour Contrast · Keyboard Navigation' },
+  { layer: '8 (최내부)', category: 'UX Strategy',           keywords: 'Competitive Analysis · Data-Driven · Stakeholder Alignment' },
 ];
 
 const inScope = [
@@ -136,7 +134,7 @@ export const Doc = {
         {/* 스킬 레이어 구성안 */}
         <SectionTitle
           title="스킬 레이어 구성안"
-          description="레이어 수: 7~9겹 (스킬 카테고리 수에 맞춰 최종 확정). 실제 스킬셋은 구현 전 최종 확정."
+          description="레이어 수: 8겹 (최외곽 UI/UX Design → 최내부 AI-enhanced Workflow)."
         />
         <TableContainer sx={ { mb: 4 } }>
           <Table size="small">
