@@ -134,7 +134,7 @@ export const Doc = {
         {/* 스킬 레이어 구성안 */}
         <SectionTitle
           title="스킬 레이어 구성안"
-          description="레이어 수: 8겹 (최외곽 UI/UX Design → 최내부 AI-enhanced Workflow)."
+          description="레이어 수: 8겹 (최외곽 Soft Skills → 최내부 UX Strategy)."
         />
         <TableContainer sx={ { mb: 4 } }>
           <Table size="small">
