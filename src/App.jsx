@@ -13,7 +13,7 @@ function App() {
     <ThemeProvider theme={ theme }>
       <CssBaseline />
       <OnionHeroSection
-        onGetInTouch={ () => {} }
+        onGetInTouch={ () => window.open('https://www.linkedin.com/in/raina-lee/', '_blank') }
         onViewWork={ () => {} }
       />
     </ThemeProvider>
