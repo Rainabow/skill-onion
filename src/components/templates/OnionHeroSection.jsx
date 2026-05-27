@@ -475,7 +475,7 @@ function OnionHeroSection({
                     '&:hover': { backgroundColor: 'rgba(255,255,255,0.85)' },
                   } }
                 >
-                  Get in Touch
+                  Let&apos;s Connect
                 </Button>
                 <Button
                   variant="outlined"
