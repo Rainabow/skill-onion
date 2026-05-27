@@ -11,6 +11,9 @@ const googleFonts = [
   'Material+Symbols+Sharp:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200',
   // Default Theme Font
   'Outfit:wght@300;400;500;600;700;800;900',
+  // Accent Fonts
+  'Playfair+Display:ital,wght@1,400;1,500;1,700;1,900',
+  'Pixelify+Sans:wght@400;700',
 ];
 
 googleFonts.forEach((font) => {

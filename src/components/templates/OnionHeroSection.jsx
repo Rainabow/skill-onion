@@ -441,7 +441,7 @@ function OnionHeroSection({
                     display: 'block',
                   } }
                 >
-                  You made it to the core.
+                  You&apos;ve peeled it all.
                 </Typography>
               </motion.div>
 
@@ -455,9 +455,10 @@ function OnionHeroSection({
                     textAlign: 'center',
                   } }
                 >
-                  Now let&apos;s build something.
+                  No more tears, just great UX.
                 </Typography>
               </motion.div>
+
 
               <motion.div
                 variants={ completionItemVariants }

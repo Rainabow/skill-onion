@@ -41,7 +41,7 @@
 - **목표**: 최종 공개를 보고 다음 행동으로 이동
 - **플로우**:
   1. 마지막 껍질이 제거 → 양파 코어가 글로우 / 펄스 효과와 함께 노출
-  2. 최종 메시지 등장 (예: "You've seen it all. Now let's build something.")
+  2. 최종 메시지 등장: caption `"You've peeled it all. No more tears, just great UX."` + headline `"Let's connect and create."`
   3. CTA 버튼 2개 출현: **View Work**, **Get in Touch**
   4. CTA 아래에 작은 **Reset** 링크 표시
 - **성공 조건**: 유저가 CTA를 클릭하거나 리셋하여 재경험
@@ -119,6 +119,8 @@ flowchart TD
 | **H1** (메인 타이틀) | `Like an Onion: Layers of Skills to Peel Back.` | 후보 A — 양파 메타포 직접 명시 |
 | **H1** (메인 타이틀) | `Unpeeling my skillset` | 후보 B — 동작 중심, 간결 |
 | **Subtext** (서브 타이틀) | `Great UX goes deeper than the surface — click to peel back the layers and explore my design capabilities.` | H1 아래 1~2줄, 인터랙션 유도 포함 |
+| **Completion Caption** (완료 상태 소문자) | `You've peeled it all. No more tears, just great UX.` | 모든 레이어 제거 후 등장, monospace · 대문자 트래킹 |
+| **Completion Headline** (완료 상태 H3) | `Let's connect and create.` | Caption 아래, bold 강조 |
 
 > H1 후보 A / B 중 최종 선택은 Visual Direction 단계에서 결정
 
