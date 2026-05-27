@@ -1,0 +1,48 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none">
+  <defs>
+    <radialGradient id="bulb" cx="38%" cy="28%" r="68%">
+      <stop offset="0%"   stop-color="#F4DFA0"/>
+      <stop offset="52%"  stop-color="#D08C24"/>
+      <stop offset="100%" stop-color="#8B4A1A"/>
+    </radialGradient>
+  </defs>
+
+  <!-- Sprout: left leaf -->
+  <path d="M30 21 C28 15 22 10 24 4 C25 9 29 15 31 21" fill="#6BAA32"/>
+  <!-- Sprout: right leaf -->
+  <path d="M34 21 C36 15 42 10 40 4 C39 9 35 15 33 21" fill="#4E8C22"/>
+  <!-- Sprout: center stem -->
+  <path d="M32 21 L32 6" stroke="#6BAA32" stroke-width="2.2" stroke-linecap="round"/>
+
+  <!-- Onion bulb -->
+  <path
+    d="M27 22 C11 23 6 34 6 44 C6 56 18 62 32 62 C46 62 58 56 58 44 C58 34 53 23 37 22 Q34 20 32 21 Q30 20 27 22 Z"
+    fill="url(#bulb)"
+    stroke="#7A3A10"
+    stroke-width="1.5"
+    stroke-linejoin="round"
+  />
+
+  <!-- Layer arc 1 -->
+  <path
+    d="M14 39 Q14 27 32 26 Q50 27 50 39"
+    stroke="#9B6010"
+    stroke-width="1.3"
+    stroke-linecap="round"
+    opacity="0.45"
+  />
+
+  <!-- Layer arc 2 -->
+  <path
+    d="M19 51 Q19 41 32 40 Q45 41 45 51"
+    stroke="#9B6010"
+    stroke-width="1.3"
+    stroke-linecap="round"
+    opacity="0.45"
+  />
+
+  <!-- Root tufts -->
+  <path d="M29 62 Q28 65 26 66" stroke="#7A3A10" stroke-width="1" stroke-linecap="round"/>
+  <path d="M32 62 Q32 65 32 67"  stroke="#7A3A10" stroke-width="1" stroke-linecap="round"/>
+  <path d="M35 62 Q36 65 38 66" stroke="#7A3A10" stroke-width="1" stroke-linecap="round"/>
+</svg>
