@@ -9,7 +9,7 @@ import { AnimatePresence, motion } from 'framer-motion';
 import { CursorFollower } from '../motion/CursorFollower';
 import { SkillRevealPanel } from '../card/SkillRevealPanel';
 import { skillLayers } from '../../data/skillLayers';
-import { playPeelSound } from '../../utils/peelSound';
+import { initAudio, playPeelSound } from '../../utils/peelSound';
 
 /** Three.js 청크를 메인 번들에서 분리.
  *  모듈 로드 즉시 preload 시작 — Suspense가 렌더를 시도하기 전에 다운로드가 진행됨.
@@ -130,7 +130,11 @@ function OnionHeroSection({
       {/* 사운드 토글 — 우상단 고정 */}
       <IconButton
         size="small"
-        onClick={ () => setIsSoundEnabled((v) => !v) }
+        onClick={ () => {
+          const next = !isSoundEnabled;
+          if (next) initAudio();
+          setIsSoundEnabled(next);
+        } }
         sx={ {
           position: 'absolute',
           top: { xs: 16, md: 24 },
