@@ -22,7 +22,7 @@ const cursorVariants = {
     transition: { duration: 0.15, ease: 'easeOut' },
   },
   idle: {
-    opacity: 1,
+    opacity: 0,
     scale: 0.4,
     backgroundColor: 'rgba(255,255,255,0)',
     transition: { duration: 0.2, ease: 'easeOut' },

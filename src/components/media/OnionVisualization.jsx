@@ -220,7 +220,10 @@ function OnionSegmentMesh({ layer, index, segIndex, isPeeling, isLastSegment, on
     m.material.opacity = Math.max(0, 1 - eased * 1.8);
     m.scale.setScalar(1 + eased * 0.18);
 
-    if (t >= 1 && !anim.completed) {
+    /** opacity 0 도달 시점에 완료 처리 — t >= 1 까지 기다리지 않음.
+     *  opacity = 1 - eased * 1.8 → eased >= 0.556 이면 invisible.
+     *  이 시점이 시각적 완료이므로 즉시 onPeelComplete 트리거. */
+    if (m.material.opacity <= 0 && !anim.completed) {
       anim.completed = true;
       if (isLastSegment) onPeelComplete?.();
     }
@@ -322,19 +325,39 @@ function EllipseShadow() {
 
 /**
  * OnionScene — Canvas 내부 장면.
- * mouse parallax: useThree().mouse → useFrame lerp(0.05) 으로 groupRef 회전.
+ * mouse parallax: useThree().mouse → spring physics 으로 groupRef 회전.
  * isAnimating 중에는 center(0,0)로 복귀.
+ *
+ * Spring 파라미터:
+ *   STIFFNESS 0.05 — 목표값 향해 당기는 힘 (클수록 빠른 초기 응답)
+ *   DAMPING   0.88 — 속도 감쇠 (클수록 오버슈팅 없이 부드럽게 수렴)
+ *
+ * 방향:
+ *   mouse.y 양수(위) → tx 양수 → rotation.x 양수 → 상단이 뒤로 기움 = 위에서 내려다보는 앵글
+ *   mouse.y 음수(아래) → tx 음수 → rotation.x 음수 → 하단이 뒤로 기움 = 아래에서 올려다보는 앵글
  */
 function OnionScene({ layers, peeledCount, isAnimating, onPeelComplete, onCanvasClick }) {
   const groupRef = useRef();
+  const velRef = useRef({ x: 0, y: 0 });
   const { mouse } = useThree();
+
+
+  const STIFFNESS = 0.05;
+  const DAMPING = 0.88;
 
   useFrame(() => {
     if (!groupRef.current) return;
-    const tx = isAnimating ? 0 : -mouse.y * 0.18;
-    const ty = isAnimating ? 0 : mouse.x * 0.10;
-    groupRef.current.rotation.x += (tx - groupRef.current.rotation.x) * 0.05;
-    groupRef.current.rotation.y += (ty - groupRef.current.rotation.y) * 0.05;
+
+    const tx = isAnimating ? 0 : mouse.y * 0.22;
+    const ty = isAnimating ? 0 : mouse.x * 0.12;
+
+    velRef.current.x += (tx - groupRef.current.rotation.x) * STIFFNESS;
+    velRef.current.y += (ty - groupRef.current.rotation.y) * STIFFNESS;
+    velRef.current.x *= DAMPING;
+    velRef.current.y *= DAMPING;
+
+    groupRef.current.rotation.x += velRef.current.x;
+    groupRef.current.rotation.y += velRef.current.y;
   });
 
   return (
@@ -427,7 +450,6 @@ function OnionVisualization({
         width: '100%',
         height,
         position: 'relative',
-        cursor: isAnimating ? 'default' : 'none',
         ...sx,
       } }
     >

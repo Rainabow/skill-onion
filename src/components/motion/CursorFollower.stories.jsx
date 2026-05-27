@@ -7,9 +7,23 @@ export default {
   title: 'Custom Component/CursorFollower',
   component: CursorFollower,
   tags: ['autodocs'],
+  parameters: {
+    docs: {
+      description: {
+        component: [
+          '마우스를 따라다니는 원형 커스텀 커서.',
+          'targetRef 영역 밖에서는 커서 원이 완전히 숨겨지고(opacity 0),',
+          'targetRef 위에서만 원이 확장되며 label 텍스트가 등장한다.',
+          'useSpring 없이 useMotionValue 직접 바인딩으로 즉각 반응하며,',
+          'scale/opacity 전환만 framer-motion variants가 담당한다.',
+          '터치 기기 또는 isDisabled=true 시 렌더링되지 않는다.',
+        ].join(' '),
+      },
+    },
+  },
   argTypes: {
-    label: { control: 'text', description: '호버 시 커서 내부에 표시할 텍스트' },
-    isDisabled: { control: 'boolean', description: '커서 비활성화 여부' },
+    label: { control: 'text', description: 'targetRef 호버 시 커서 내부에 표시할 텍스트' },
+    isDisabled: { control: 'boolean', description: '커서 전체 비활성화. true 시 컴포넌트 자체가 null 반환.' },
   },
 };
 

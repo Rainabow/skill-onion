@@ -12,6 +12,18 @@ const dirname = typeof __dirname !== 'undefined' ? __dirname : path.dirname(file
 // More info at: https://storybook.js.org/docs/next/writing-tests/integrations/vitest-addon
 export default defineConfig({
   plugins: [react()],
+  build: {
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          'three-core': ['three'],
+          'three-r3f': ['@react-three/fiber', '@react-three/drei'],
+          'three-post': ['@react-three/postprocessing', 'postprocessing'],
+          'framer': ['framer-motion'],
+        },
+      },
+    },
+  },
   test: {
     projects: [{
       extends: true,

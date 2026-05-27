@@ -1,4 +1,4 @@
-import { useCallback, useRef, useState } from 'react';
+import { lazy, Suspense, useCallback, useRef, useState } from 'react';
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
 import IconButton from '@mui/material/IconButton';
@@ -8,9 +8,16 @@ import VolumeUpIcon from '@mui/icons-material/VolumeUp';
 import { AnimatePresence, motion } from 'framer-motion';
 import { CursorFollower } from '../motion/CursorFollower';
 import { SkillRevealPanel } from '../card/SkillRevealPanel';
-import { OnionVisualization } from '../media/OnionVisualization';
 import { skillLayers } from '../../data/skillLayers';
 import { playPeelSound } from '../../utils/peelSound';
+
+/** Three.js 청크를 메인 번들에서 분리.
+ *  모듈 로드 즉시 preload 시작 — Suspense가 렌더를 시도하기 전에 다운로드가 진행됨.
+ *  React.lazy는 동일한 Promise를 재사용하므로 중복 요청 없음. */
+const _onionPreload = import('../media/OnionVisualization');
+const OnionVisualization = lazy(() =>
+  _onionPreload.then((m) => ({ default: m.OnionVisualization }))
+);
 
 const completionVariants = {
   hidden: { opacity: 0, scale: 0.96 },
@@ -164,7 +171,7 @@ function OnionHeroSection({
                   fontWeight: 900,
                   color: 'common.white',
                   lineHeight: 0.88,
-                  fontSize: 'clamp(3rem, 9.5vw, 10rem)',
+                  fontSize: 'clamp(2rem, 9.5vw, 10rem)',
                   letterSpacing: '-0.03em',
                   textAlign: 'center',
                 } }
@@ -202,15 +209,40 @@ function OnionHeroSection({
           zIndex: 1,
         } }
       >
-        <OnionVisualization
-          layers={ layers }
-          peeledCount={ peeledCount }
-          isAnimating={ isAnimating }
-          onPeelComplete={ handlePeelComplete }
-          onClick={ handleClick }
-          height="100%"
-          sx={ { width: '100%' } }
-        />
+        <Suspense
+          fallback={
+            <Box
+              sx={ {
+                width: 'clamp(200px, 38vmin, 480px)',
+                height: 'clamp(260px, 54vmin, 640px)',
+                borderRadius: '50%',
+                background: 'radial-gradient(ellipse at 40% 35%, rgba(255,255,255,0.07) 0%, transparent 70%)',
+                animation: 'onion-pulse 2s ease-in-out infinite',
+                '@keyframes onion-pulse': {
+                  '0%, 100%': { opacity: 0.4 },
+                  '50%': { opacity: 0.8 },
+                },
+              } }
+            />
+          }
+        >
+          <motion.div
+            style={ { width: '100%', height: '100%' } }
+            initial={ { opacity: 0 } }
+            animate={ { opacity: 1 } }
+            transition={ { duration: 0.35, ease: 'easeOut' } }
+          >
+            <OnionVisualization
+              layers={ layers }
+              peeledCount={ peeledCount }
+              isAnimating={ isAnimating }
+              onPeelComplete={ handlePeelComplete }
+              onClick={ handleClick }
+              height="100%"
+              sx={ { width: '100%' } }
+            />
+          </motion.div>
+        </Suspense>
       </Box>
 
       {/* 커서 감지 영역 — 양파가 실제로 보이는 중앙 영역만 */}
@@ -270,7 +302,7 @@ function OnionHeroSection({
             initial={ { opacity: 0, x: -20 } }
             animate={ { opacity: isAnimating ? 0 : 1, x: isAnimating ? -20 : 0 } }
             exit={ { opacity: 0, x: -20 } }
-            transition={ { duration: 0.4, ease: [0.22, 1, 0.36, 1] } }
+            transition={ { duration: 0.2, ease: [0.22, 1, 0.36, 1] } }
             style={ {
               position: 'absolute',
               right: 'calc(50% + 27vw)',
@@ -316,7 +348,7 @@ function OnionHeroSection({
             initial={ { opacity: 0, x: 20 } }
             animate={ { opacity: isAnimating ? 0 : 1, x: isAnimating ? 20 : 0 } }
             exit={ { opacity: 0, x: 20 } }
-            transition={ { duration: 0.4, ease: [0.22, 1, 0.36, 1], delay: 0.1 } }
+            transition={ { duration: 0.2, ease: [0.22, 1, 0.36, 1], delay: 0.05 } }
             style={ {
               position: 'absolute',
               left: 'calc(50% + 27vw)',
@@ -365,14 +397,11 @@ function OnionHeroSection({
         ) }
       </AnimatePresence>
 
-      {/* 하단 중앙 — 서브텍스트(초기) / 스킬패널(모바일) / 완료 CTA */}
+      {/* 하단 중앙 — 서브텍스트(초기) / 스킬패널(모바일) */}
       <Box
         sx={ {
           position: 'absolute',
-          ...(isComplete
-            ? { top: '50%', transform: 'translateY(-50%)' }
-            : { bottom: { xs: 32, md: 48 } }
-          ),
+          bottom: { xs: 32, md: 48 },
           left: 0,
           right: 0,
           display: 'flex',
@@ -383,7 +412,7 @@ function OnionHeroSection({
         } }
       >
         <AnimatePresence mode="wait">
-          { !isComplete ? (
+          { !isComplete && (
             <motion.div
               key="bottom-main"
               initial={ { opacity: 0, y: 16 } }
@@ -420,12 +449,35 @@ function OnionHeroSection({
                 </Box>
               ) }
             </motion.div>
-          ) : (
+          ) }
+        </AnimatePresence>
+      </Box>
+
+      {/* 완료 CTA — 항상 화면 중앙 고정. 하단 섹션과 컨테이너 분리하여
+          peel again 시 exit 애니메이션이 중앙에서 재생되도록 함. */}
+      <Box
+        sx={ {
+          position: 'absolute',
+          top: '50%',
+          transform: 'translateY(-50%)',
+          left: 0,
+          right: 0,
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          px: { xs: 3, md: 6 },
+          zIndex: 2,
+          pointerEvents: isComplete ? 'auto' : 'none',
+        } }
+      >
+        <AnimatePresence>
+          { isComplete && (
             <motion.div
               key="complete"
               variants={ completionVariants }
               initial="hidden"
               animate="visible"
+              exit={ { opacity: 0, scale: 0.96, transition: { duration: 0.25, ease: 'easeIn' } } }
               style={ { display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 16 } }
             >
               <motion.div variants={ completionItemVariants }>
@@ -453,12 +505,12 @@ function OnionHeroSection({
                     color: 'common.white',
                     lineHeight: 1.15,
                     textAlign: 'center',
+                    fontSize: { xs: '1.5rem', sm: '1.75rem', md: '2.125rem' },
                   } }
                 >
                   No more tears, just great UX.
                 </Typography>
               </motion.div>
-
 
               <motion.div
                 variants={ completionItemVariants }
