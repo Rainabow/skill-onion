@@ -12,6 +12,10 @@ dist
 dist-ssr
 *.local
 
+# Environment variables
+.env
+.env.*
+
 # Claude Code 개인 설정
 CLAUDE.local.md
 
