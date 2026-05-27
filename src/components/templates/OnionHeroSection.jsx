@@ -147,7 +147,7 @@ function OnionHeroSection({
         { isSoundEnabled ? <VolumeUpIcon fontSize="small" /> : <VolumeOffIcon fontSize="small" /> }
       </IconButton>
 
-      {/* h1 — 상단 풀너비 */}
+      {/* h1 — 상단 풀너비. 모바일은 아이콘 전용 영역(44px) 아래부터 시작 */}
       <Box
         sx={ {
           position: 'absolute',
@@ -155,7 +155,7 @@ function OnionHeroSection({
           left: 0,
           right: 0,
           px: { xs: 2.5, md: 5 },
-          pt: { xs: 2, md: 2.5 },
+          pt: { xs: '44px', md: 2.5 },
           zIndex: 2,
           pointerEvents: 'none',
         } }
