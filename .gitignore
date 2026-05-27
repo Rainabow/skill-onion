@@ -18,6 +18,7 @@ dist-ssr
 
 # Claude Code 개인 설정
 CLAUDE.local.md
+.claude/
 
 # Editor directories and files
 .vscode/*
