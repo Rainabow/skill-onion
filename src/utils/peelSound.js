@@ -1,10 +1,12 @@
 let audioCtx = null;
 
-function getCtx() {
+async function getCtx() {
   if (!audioCtx) {
     audioCtx = new (window.AudioContext || window.webkitAudioContext)();
   }
-  if (audioCtx.state === 'suspended') audioCtx.resume();
+  if (audioCtx.state === 'suspended') {
+    await audioCtx.resume();
+  }
   return audioCtx;
 }
 
@@ -43,13 +45,20 @@ function makeNoiseBurst(ctx, startTime, duration, freqStart, freqEnd, peakGain, 
 }
 
 /**
- * AudioContext를 사용자 제스처 안에서 미리 초기화/resume.
- * 모바일 브라우저(iOS Safari 등)는 직접적인 유저 제스처 내에서
- * AudioContext를 생성하거나 resume해야 소리가 재생된다.
- * 사운드 토글 버튼 클릭 시 호출하여 컨텍스트를 잠금 해제해 둔다.
+ * AudioContext를 사용자 제스처 안에서 초기화하고 iOS 오디오 잠금 해제.
+ * iOS Safari는 resume()만으로는 부족하고, 실제로 무음 버퍼를 재생해야
+ * 오디오 시스템이 완전히 잠금 해제된다.
+ * 사운드 토글 버튼 클릭 시 호출.
  */
-export function initAudio() {
-  getCtx();
+export async function initAudio() {
+  const ctx = await getCtx();
+
+  // iOS 오디오 잠금 해제: 1샘플짜리 무음 버퍼를 직접 제스처 안에서 재생
+  const silentBuf = ctx.createBuffer(1, 1, ctx.sampleRate);
+  const src = ctx.createBufferSource();
+  src.buffer = silentBuf;
+  src.connect(ctx.destination);
+  src.start(0);
 }
 
 /**
@@ -57,8 +66,8 @@ export function initAudio() {
  * 고주파 노이즈 버스트 2개를 짧게 연달아 재생.
  * 저음 없음, 총 0.16s — 가볍고 빠른 마찰음.
  */
-export function playPeelSound() {
-  const ctx = getCtx();
+export async function playPeelSound() {
+  const ctx = await getCtx();
   const now = ctx.currentTime;
 
   // "샤" — 선행 스윕, 더 밝고 부드럽게

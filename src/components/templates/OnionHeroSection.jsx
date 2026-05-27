@@ -130,9 +130,9 @@ function OnionHeroSection({
       {/* 사운드 토글 — 우상단 고정 */}
       <IconButton
         size="small"
-        onClick={ () => {
+        onClick={ async () => {
           const next = !isSoundEnabled;
-          if (next) initAudio();
+          if (next) await initAudio();
           setIsSoundEnabled(next);
         } }
         sx={ {
