@@ -15,7 +15,7 @@ export const skillLayers = [
   {
     id: 1,
     category: 'Product Thinking',
-    keywords: ['Product Design', 'Data-Driven', 'A/B Testing', 'Conversion Rate Optimisation (CRO)'],
+    keywords: ['Product Design', 'Data-Driven', 'A/B Testing', 'Conversion Rate Optimisation'],
     color: '#D8EAA0',
     emissiveColor: '#B8D460',
   },
@@ -50,7 +50,7 @@ export const skillLayers = [
   {
     id: 6,
     category: 'UX Strategy',
-    keywords: ['Design Thinking', 'Information Architecture (IA)', 'User Journey Mapping', 'Competitive Analysis'],
+    keywords: ['Design Thinking', 'Information Architecture', 'User Journey Mapping', 'Competitive Analysis'],
     color: '#EEE0D2',
     emissiveColor: '#3A2810',
   },
