@@ -436,7 +436,7 @@ function OnionHeroSection({
                     textAlign: 'center',
                   } }
                 >
-                  Great UX goes deeper than the surface — click to peel back the layers and explore my design capabilities.
+                  Great UX goes deeper than the surface — Have a play, peel back the layers, and see what I bring to the table.
                 </Typography>
               ) }
               {/* 모바일 전용 — 데스크탑은 좌우 패널로 표시 */}
