@@ -32,7 +32,7 @@ const skillLayers = [
   { layer: '2',          category: 'Product Thinking',       keywords: 'Product Design · Data-Driven · A/B Testing · Conversion Rate Optimisation' },
   { layer: '3',          category: 'Visual Design',          keywords: 'Typography · Colour · Layout · Brand Consistency' },
   { layer: '4',          category: 'Design System',          keywords: 'Atomic · Component Library · Design Token · Figma · Storybook' },
-  { layer: '5',          category: 'AI-enhanced Workflow',   keywords: 'Prompt Engineering · Generative AI · Rapid Prototyping' },
+  { layer: '5',          category: 'AI-Enhanced Workflow',   keywords: 'Prompt Engineering · Generative AI · Rapid Prototyping' },
   { layer: '6',          category: 'UX Research',            keywords: 'User Interviews · Qualitative Research · Usability Testing · User Flows · Journey Mapping' },
   { layer: '7',          category: 'UX Strategy',            keywords: 'Design Thinking · Information Architecture · User Journey Mapping · Competitive Analysis' },
   { layer: '8 (최내부)', category: 'Accessibility',          keywords: 'WCAG · Inclusive Design · Colour Contrast' },

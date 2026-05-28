@@ -35,7 +35,7 @@ export const skillLayers = [
   },
   {
     id: 4,
-    category: 'AI-enhanced Workflow',
+    category: 'AI-Enhanced Workflow',
     keywords: ['Prompt Engineering', 'Generative AI', 'Rapid Prototyping'],
     color: '#E8DDD0',
     emissiveColor: '#3A2810',
