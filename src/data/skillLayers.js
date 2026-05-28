@@ -15,7 +15,7 @@ export const skillLayers = [
   {
     id: 1,
     category: 'Product Thinking',
-    keywords: ['Product Design', 'Data-Driven', 'A/B Testing', 'Conversion Rate Optimisation'],
+    keywords: ['Product Design', 'Data-Driven', 'A/B Testing', 'CRO'],
     color: '#D8EAA0',
     emissiveColor: '#B8D460',
   },
@@ -29,7 +29,7 @@ export const skillLayers = [
   {
     id: 3,
     category: 'Design System',
-    keywords: ['Atomic', 'Component Library', 'Design Token', 'Figma', 'Storybook'],
+    keywords: ['Atomic Design', 'Component Library', 'Design Token', 'Storybook'],
     color: '#E2D8C8',
     emissiveColor: '#3A2810',
   },
@@ -43,7 +43,7 @@ export const skillLayers = [
   {
     id: 5,
     category: 'UX Research',
-    keywords: ['User Interviews', 'Qualitative Research', 'Usability Testing', 'User Flows', 'Journey Mapping'],
+    keywords: ['User Interviews', 'Usability Testing', 'User Flows', 'Journey Mapping'],
     color: '#ECDDCE',
     emissiveColor: '#3A2810',
   },
@@ -57,7 +57,7 @@ export const skillLayers = [
   {
     id: 7,
     category: 'Accessibility',
-    keywords: ['WCAG', 'Inclusive Design', 'Colour Contrast'],
+    keywords: ['WCAG 2.2', 'Inclusive Design', 'Colour Contrast'],
     color: '#F2E8DE',
     emissiveColor: '#3A2810',
   },
